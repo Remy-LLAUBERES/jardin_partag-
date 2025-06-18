@@ -2,51 +2,73 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4CAF50">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="favicon.png">
   <title>Suivi des Stocks de Plants & Graines</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 2rem;
       background-color: #f0f8f5;
+      margin: 0;
+      padding: 1rem;
     }
+
     h1 {
       text-align: center;
       color: #2e7d32;
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
     }
+
     .tabs {
-      text-align: center;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
       margin-bottom: 1.5rem;
     }
+
     .tabs button {
       background-color: #a5d6a7;
       border: none;
-      padding: 0.8rem 1.5rem;
-      margin: 0 0.5rem;
+      padding: 0.6rem 1.2rem;
       font-size: 1rem;
-      cursor: pointer;
       border-radius: 8px;
+      cursor: pointer;
+      flex: 1 1 auto;
+      max-width: 200px;
     }
+
     .tabs button.active {
       background-color: #4CAF50;
       color: white;
     }
+
     .formulaire, .prelevement {
       background-color: #ffffff;
-      padding: 1.5rem;
+      padding: 1.2rem;
       border-radius: 10px;
-      max-width: 900px;
-      margin: 2rem auto;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: 0 auto 2rem;
       display: none;
     }
+
     .visible {
       display: block;
     }
+
     label {
       display: block;
       margin-top: 1rem;
       font-weight: bold;
     }
+
     input, select, textarea {
       width: 100%;
       padding: 0.5rem;
@@ -54,37 +76,68 @@
       font-size: 1rem;
       border-radius: 6px;
       border: 1px solid #ccc;
+      box-sizing: border-box;
     }
-    button.submit {
-      margin-top: 1.5rem;
+
+    button.submit, button.delete {
+      margin-top: 1rem;
       padding: 0.6rem 1.2rem;
       font-size: 1rem;
       color: white;
-      background-color: #4CAF50;
       border: none;
       border-radius: 8px;
       cursor: pointer;
     }
+
+    button.submit {
+      background-color: #4CAF50;
+    }
+
+    button.submit:hover {
+      background-color: #388e3c;
+    }
+
     button.delete {
       background-color: #e53935;
-      color: white;
-      border-radius: 6px;
-      border: none;
-      padding: 0.3rem 0.8rem;
-      cursor: pointer;
     }
+
+    button.delete:hover {
+      background-color: #c62828;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 2rem;
+      margin-top: 1.5rem;
+      overflow-x: auto;
+      display: block;
     }
+
     th, td {
       border: 1px solid #ccc;
       padding: 0.5rem;
       text-align: left;
+      font-size: 0.9rem;
     }
+
     th {
       background-color: #e8f5e9;
+    }
+
+    @media (max-width: 500px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .tabs button {
+        font-size: 0.9rem;
+        padding: 0.5rem;
+      }
+
+      button.submit, button.delete {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+      }
     }
   </style>
 </head>
@@ -94,28 +147,33 @@
   <div class="tabs">
     <button id="btnAjout" class="active" onclick="switchTab('ajout')">🌱 Ajouter un stock</button>
     <button id="btnPrelev" onclick="switchTab('prelevement')">🧺 Prélever du stock</button>
-	<button id="btnRetour" onclick="window.location.href='index.html'">Retour</button>
+    <button onclick="window.location.href='index.html'">🏠 Retour</button>
   </div>
 
   <div class="formulaire visible" id="tabAjout">
     <form id="formStock">
       <label for="plant">Type de plant :</label>
-		<select id="plant" name="plant" required onchange="checkStock()">
-		  <option value="">-- Choisir un plant --</option>
-		  <option value="🍅">🍅 Tomate</option>
-		  <option value="🥕">🥕 Carotte</option>
-		  <option value="🥬">🥬 Salade</option>
-		  <option value="🌶️">🌶️ Piment</option>
-		  <option value="🎃">🎃 Citrouille</option>
-		</select>
-	  <label for="origine">Origine/Fournisseur :</label>
+      <select id="plant" required>
+        <option value="">-- Choisir un plant --</option>
+        <option value="🍅">🍅 Tomate</option>
+        <option value="🥕">🥕 Carotte</option>
+        <option value="🥬">🥬 Salade</option>
+        <option value="🌶️">🌶️ Piment</option>
+        <option value="🎃">🎃 Citrouille</option>
+      </select>
+
+      <label for="origine">Origine/Fournisseur :</label>
       <input type="text" id="origine">
+
       <label for="dateEntree">Date d'entrée :</label>
       <input type="date" id="dateEntree">
+
       <label for="quantite">Quantité initiale :</label>
       <input type="number" id="quantite" min="1" required>
+
       <label for="remarque">Remarque :</label>
       <textarea id="remarque"></textarea>
+
       <button type="submit" class="submit">Ajouter</button>
     </form>
     <table id="tableStock"></table>
@@ -125,14 +183,19 @@
     <form id="formPrelevement">
       <label for="plantDispo">Choisir un stock :</label>
       <select id="plantDispo"></select>
+
       <label for="beneficiaire">Nom du bénéficiaire :</label>
       <input type="text" id="beneficiaire" required>
+
       <label for="quantitePrelevee">Quantité prélevée :</label>
       <input type="number" id="quantitePrelevee" min="1" required>
+
       <label for="datePrelev">Date de prélèvement :</label>
       <input type="date" id="datePrelev">
+
       <label for="remarquePrelev">Remarque :</label>
       <textarea id="remarquePrelev"></textarea>
+
       <button type="submit" class="submit">Valider le prélèvement</button>
     </form>
     <table id="tablePrelev"></table>
