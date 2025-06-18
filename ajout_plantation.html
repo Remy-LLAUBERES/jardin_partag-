@@ -2,45 +2,63 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4CAF50">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="favicon.png">
   <title>Ajouter une Plantation</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background-color: #f0f8f5;
       margin: 0;
-      padding: 2rem;
+      padding: 1rem;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
+
     h1 {
       color: #2e7d32;
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
     }
+
     form {
       background-color: white;
-      padding: 2rem;
+      padding: 1.5rem;
       border-radius: 12px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      max-width: 400px;
       width: 100%;
+      max-width: 400px;
     }
+
     label {
       display: block;
       margin-top: 1rem;
       margin-bottom: 0.5rem;
       font-weight: bold;
+      font-size: 1rem;
     }
-    select, input[type="number"] {
+
+    select,
+    input[type="number"] {
       width: 100%;
-      padding: 0.5rem;
+      padding: 0.6rem;
       font-size: 1rem;
       border: 1px solid #ccc;
       border-radius: 6px;
+      box-sizing: border-box;
     }
+
     button {
       margin-top: 2rem;
       padding: 0.75rem 1.5rem;
-      font-size: 1rem;
+      font-size: 1.1rem;
       color: white;
       background-color: #4CAF50;
       border: none;
@@ -48,14 +66,30 @@
       cursor: pointer;
       width: 100%;
     }
+
     button:hover {
       background-color: #388e3c;
     }
+
     #stockInfo {
       display: none;
       font-size: 0.9rem;
       color: #2e7d32;
       margin-top: 0.5rem;
+    }
+
+    @media (max-width: 400px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      label {
+        font-size: 0.95rem;
+      }
+
+      button {
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
@@ -64,14 +98,13 @@
   <form onsubmit="return handleSubmit(event)">
     <label for="plant">Type de plant :</label>
     <select id="plant" name="plant" required onchange="checkStock()">
-	  <option value="">-- Choisir un plant --</option>
-	  <option value="🍅">🍅 Tomate</option>
-	  <option value="🥕">🥕 Carotte</option>
-	  <option value="🥬">🥬 Salade</option>
-	  <option value="🌶️">🌶️ Piment</option>
-	  <option value="🎃">🎃 Citrouille</option>
-	</select>
-
+      <option value="">-- Choisir un plant --</option>
+      <option value="🍅">🍅 Tomate</option>
+      <option value="🥕">🥕 Carotte</option>
+      <option value="🥬">🥬 Salade</option>
+      <option value="🌶️">🌶️ Piment</option>
+      <option value="🎃">🎃 Citrouille</option>
+    </select>
 
     <div id="stockContainer" style="display:none">
       <label><input type="checkbox" id="useStock"> Utiliser le stock de plants/graines</label>
