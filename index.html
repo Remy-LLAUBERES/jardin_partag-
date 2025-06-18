@@ -5,7 +5,9 @@
   <title>Jardin - Interface</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#4CAF50">
   <link rel="apple-touch-icon" href="favicon.png">
   <link rel="manifest" href="manifest.json">
   <script>
@@ -23,9 +25,6 @@
       padding: 0;
       height: 100%;
       font-family: Arial, sans-serif;
-    }
-
-    body {
       background-color: #f0f0f0;
     }
 
@@ -57,66 +56,66 @@
 
     .bac {
       position: absolute;
-      width: 150px;
-      height: 150px;
+      width: 28vw;
+      height: 28vw;
       background-color: rgba(232, 245, 233, 0.6);
       border: 2px solid #a5d6a7;
       border-radius: 10px;
       text-align: center;
       padding-top: 0.5rem;
-      font-size: 16px;
+      font-size: 3.5vw;
       overflow-wrap: break-word;
     }
 
-    #bac1 { top: 40%; left: 50%; }
-    #bac2 { top: 65%; left: 35%; }
-    #bac3 { top: 40%; left: 75%; }
-	
-	.stock {
+    #bac1 { top: 40%; left: 50%; transform: translate(-50%, -50%); }
+    #bac2 { top: 65%; left: 35%; transform: translate(-50%, -50%); }
+    #bac3 { top: 40%; left: 75%; transform: translate(-50%, -50%); }
+
+    .stock {
       position: absolute;
-      ext-align: center;
       padding-top: 0.5rem;
-      font-size: 50px;
-      overflow-wrap: break-word;
-	  cursor: pointer;
-	  transition: transform 0.3s ease;
+      font-size: 10vw;
+      cursor: pointer;
+      transition: transform 0.3s ease;
     }
-	.stock:hover {
-	  transform: scale(1.2);
-	}
-	
-	#stock_mat { top: 8%; left: 52%; }
-	#stock_plant { top: 20%; left: 52%; }
-	
-	.plant-info {
-	  position: relative;
-	  display: inline-block;
-	}
 
-	.tooltip {
-	  visibility: hidden;
-	  opacity: 0;
-	  position: absolute;
-	  top: -10px;
-	  left: 120%;
-	  background-color: #ffffff;
-	  color: #333;
-	  border: 2px solid #81d4fa;
-	  border-radius: 8px;
-	  padding: 0.8rem;
-	  width: 220px;
-	  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-	  transition: opacity 0.3s;
-	  z-index: 10;
-	  font-size: 0.9rem;
-	}
+    .stock:hover {
+      transform: scale(1.2);
+    }
 
-	.plant-info:hover .tooltip {
-	  visibility: visible;
-	  opacity: 1;
-	}
+    #stock_mat { top: 8%; left: 52%; transform: translateX(-50%); }
+    #stock_plant { top: 20%; left: 52%; transform: translateX(-50%); }
+
+    .plant-info {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tooltip {
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      top: -10px;
+      left: 120%;
+      background-color: #ffffff;
+      color: #333;
+      border: 2px solid #81d4fa;
+      border-radius: 8px;
+      padding: 0.8rem;
+      width: 220px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      transition: opacity 0.3s;
+      z-index: 10;
+      font-size: 0.9rem;
+    }
+
+    .plant-info:hover .tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+
     .icone {
-      font-size: 24px;
+      font-size: 5vw;
       margin: 0.2rem;
       transition: transform 0.3s ease;
       cursor: pointer;
@@ -136,26 +135,47 @@
       display: flex;
       justify-content: space-around;
       align-items: center;
-      padding: 0.8rem 0;
+      padding: 0.6rem 0;
       z-index: 4;
       border-top: 1px solid #ccc;
+      font-size: 0.9rem;
     }
 
     .menu-bar button {
       background-color: #4CAF50;
       border: none;
       color: white;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       padding: 0.5rem 1rem;
       border-radius: 8px;
       cursor: pointer;
+      flex: 1;
+      margin: 0 0.3rem;
+      min-width: 20%;
+      max-width: 25%;
+      white-space: nowrap;
     }
 
     .menu-bar button:hover {
       background-color: #45a049;
     }
-	
 
+    @media (max-width: 400px) {
+      .bac {
+        width: 36vw;
+        height: 36vw;
+        font-size: 4vw;
+      }
+
+      .icone {
+        font-size: 6vw;
+      }
+
+      .menu-bar button {
+        font-size: 1rem;
+        padding: 0.3rem 0.6rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -166,12 +186,12 @@
 
   <div class="jardin-container">
     <img src="jardin.png" alt="Vue du jardin" class="jardin-image">
-	<div class="stock" id="stock_mat">
-		<div onclick="window.location.href='stock_materiel.html'">🧰</div>
-	</div>
-	<div class="stock" id="stock_plant">
-		<div onclick="window.location.href='stock_plant.html'">🌱</div>
-	</div>
+    <div class="stock" id="stock_mat">
+      <div onclick="window.location.href='stock_materiel.html'">🧰</div>
+    </div>
+    <div class="stock" id="stock_plant">
+      <div onclick="window.location.href='stock_plant.html'">🌱</div>
+    </div>
     <div class="bac" id="bac1">
       <div><strong>Bac 1</strong></div>
     </div>
