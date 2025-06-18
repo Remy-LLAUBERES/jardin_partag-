@@ -2,28 +2,20 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Jardin - Interface</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4CAF50">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#4CAF50">
-  <link rel="apple-touch-icon" href="favicon.png">
   <link rel="manifest" href="manifest.json">
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').then(function(registration) {
-        console.log('Service Worker enregistré avec succès :', registration);
-      }).catch(function(error) {
-        console.log('Échec de l’enregistrement du Service Worker :', error);
-      });
-    }
-  </script>
+  <link rel="apple-touch-icon" href="favicon.png">
+  <title>Jardin - Interface</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
       font-family: Arial, sans-serif;
       background-color: #f0f0f0;
     }
@@ -43,7 +35,7 @@
     .jardin-container {
       position: relative;
       width: 100%;
-      height: 100vh;
+      height: 100dvh;
       overflow: hidden;
     }
 
@@ -92,8 +84,7 @@
     }
 
     .tooltip {
-      visibility: hidden;
-      opacity: 0;
+      display: none;
       position: absolute;
       top: -10px;
       left: 120%;
@@ -104,14 +95,8 @@
       padding: 0.8rem;
       width: 220px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      transition: opacity 0.3s;
       z-index: 10;
       font-size: 0.9rem;
-    }
-
-    .plant-info:hover .tooltip {
-      visibility: visible;
-      opacity: 1;
     }
 
     .icone {
@@ -180,27 +165,15 @@
 </head>
 <body>
 
-  <header>
-    🌿 Jardin Communautaire de la Bergerie
-  </header>
+  <header>🌿 Jardin Communautaire de la Bergerie</header>
 
   <div class="jardin-container">
     <img src="jardin.png" alt="Vue du jardin" class="jardin-image">
-    <div class="stock" id="stock_mat">
-      <div onclick="window.location.href='stock_materiel.html'">🧰</div>
-    </div>
-    <div class="stock" id="stock_plant">
-      <div onclick="window.location.href='stock_plant.html'">🌱</div>
-    </div>
-    <div class="bac" id="bac1">
-      <div><strong>Bac 1</strong></div>
-    </div>
-    <div class="bac" id="bac2">
-      <div><strong>Bac 2</strong></div>
-    </div>
-    <div class="bac" id="bac3">
-      <div><strong>Bac 3</strong></div>
-    </div>
+    <div class="stock" id="stock_mat" onclick="window.location.href='stock_materiel.html'">🧰</div>
+    <div class="stock" id="stock_plant" onclick="window.location.href='stock_plant.html'">🌱</div>
+    <div class="bac" id="bac1"><div><strong>Bac 1</strong></div></div>
+    <div class="bac" id="bac2"><div><strong>Bac 2</strong></div></div>
+    <div class="bac" id="bac3"><div><strong>Bac 3</strong></div></div>
   </div>
 
   <div class="menu-bar">
@@ -228,16 +201,26 @@
         const span = document.createElement("span");
         span.className = "icone";
         span.textContent = `${plant}`;
+
+        const container = document.createElement("div");
+        container.className = "plant-info";
+
+        const tooltip = document.createElement("div");
+        tooltip.className = "tooltip";
+        tooltip.innerHTML = `<strong>Plant : ${plant}</strong><br>Quantité : ${quantite}<br>État : ${etat || "En croissance"}<br>À faire : ${taches || "Arroser"}`;
+
+        // Toggle on tap
+        container.onclick = function (e) {
+          e.stopPropagation();
+          const allTooltips = document.querySelectorAll('.tooltip');
+          allTooltips.forEach(t => { if (t !== tooltip) t.style.display = 'none'; });
+          tooltip.style.display = tooltip.style.display === 'block' ? 'none' : 'block';
+        };
+
         span.onclick = () => {
           localStorage.setItem("selectedPlant", JSON.stringify(count[key]));
           window.location.href = "fiche_plantation.html";
         };
-
-        const container = document.createElement("div");
-        container.className = "plant-info";
-        const tooltip = document.createElement("div");
-        tooltip.className = "tooltip";
-        tooltip.innerHTML = `<strong>Plant : ${plant}</strong><br>Quantité : ${quantite}<br>État : ${etat || "En croissance"}<br>À faire : ${taches || "Arroser"}`;
 
         container.appendChild(span);
         container.appendChild(tooltip);
@@ -245,6 +228,11 @@
         const bacElement = document.getElementById(bacId);
         if (bacElement) bacElement.appendChild(container);
       }
+
+      // Hide tooltip when clicking outside
+      document.body.addEventListener('click', () => {
+        document.querySelectorAll('.tooltip').forEach(t => t.style.display = 'none');
+      });
     };
   </script>
 </body>
