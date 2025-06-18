@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Ajouter une Plantation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f8f5;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      color: #2e7d32;
+    }
+    form {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+    select, input[type="number"] {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      margin-top: 2rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      color: white;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #388e3c;
+    }
+    #stockInfo {
+      display: none;
+      font-size: 0.9rem;
+      color: #2e7d32;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ajouter une Plantation</h1>
+  <form onsubmit="return handleSubmit(event)">
+    <label for="plant">Type de plant :</label>
+    <select id="plant" name="plant" required onchange="checkStock()">
+	  <option value="">-- Choisir un plant --</option>
+	  <option value="🍅">🍅 Tomate</option>
+	  <option value="🥕">🥕 Carotte</option>
+	  <option value="🥬">🥬 Salade</option>
+	  <option value="🌶️">🌶️ Piment</option>
+	  <option value="🎃">🎃 Citrouille</option>
+	</select>
+
+
+    <div id="stockContainer" style="display:none">
+      <label><input type="checkbox" id="useStock"> Utiliser le stock de plants/graines</label>
+      <div id="stockInfo"></div>
+    </div>
+
+    <label for="quantite">Quantité :</label>
+    <input type="number" id="quantite" name="quantite" min="1" max="50" required>
+
+    <label for="bac">Choisir un bac :</label>
+    <select id="bac" name="bac" required>
+      <option value="">-- Choisir un bac --</option>
+      <option value="1">Bac 1</option>
+      <option value="2">Bac 2</option>
+      <option value="3">Bac 3</option>
+    </select>
+
+    <button type="submit">Valider</button>
+  </form>
+
+  <script>
+    function checkStock() {
+      const plant = document.getElementById("plant").value;
+      const stocks = JSON.parse(localStorage.getItem("stocks") || "[]");
+      const found = stocks.find(s => s.nom.trim() === plant.trim());
+      const container = document.getElementById("stockContainer");
+      const info = document.getElementById("stockInfo");
+      if (found) {
+        container.style.display = "block";
+        info.style.display = "block";
+        info.textContent = `Quantité en stock : ${found.quantite}`;
+      } else {
+        container.style.display = "none";
+        info.style.display = "none";
+      }
+    }
+
+    function handleSubmit(event) {
+      event.preventDefault();
+      const plant = document.getElementById("plant").value;
+      const quantite = parseInt(document.getElementById("quantite").value);
+      const bac = document.getElementById("bac").value;
+      const useStock = document.getElementById("useStock").checked;
+
+      if (!plant || isNaN(quantite) || !bac) {
+        alert("Veuillez remplir tous les champs.");
+        return false;
+      }
+
+      if (useStock) {
+        const stocks = JSON.parse(localStorage.getItem("stocks") || "[]");
+        const index = stocks.findIndex(s => s.nom.trim() === plant.trim());
+        if (index === -1 || stocks[index].quantite < quantite) {
+          alert("Stock insuffisant pour cette plantation.");
+          return false;
+        }
+        stocks[index].quantite -= quantite;
+        localStorage.setItem("stocks", JSON.stringify(stocks));
+      }
+
+      const newEntry = { plant, quantite, bac };
+      const plantations = JSON.parse(localStorage.getItem("plantations") || "[]");
+      plantations.push(newEntry);
+      localStorage.setItem("plantations", JSON.stringify(plantations));
+      alert("Plantation ajoutée !");
+      window.location.href = "index.html";
+      return false;
+    }
+  </script>
+</body>
+</html>

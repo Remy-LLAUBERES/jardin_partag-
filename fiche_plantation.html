@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Fiche de la Plantation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5fff4;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2e7d32;
+    }
+
+    .fiche {
+      background: #ffffff;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.3rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      margin-top: 2rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      color: white;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #388e3c;
+    }
+	delete {
+      background-color: #e53935;
+    }
+
+    .delete:hover {
+      background-color: #c62828;
+    }
+  </style>
+</head>
+<body>
+  <h1>Fiche de la Plantation</h1>
+  <div class="fiche">
+    <form id="ficheForm">
+      <label>Plant :</label>
+      <div id="plantEmoji"></div>
+
+      <label for="quantite">Quantité :</label>
+      <input type="number" id="quantite" name="quantite" min="1" required>
+
+      <label for="etat">État :</label>
+      <select id="etat" name="etat">
+        <option value="Semé">Semé</option>
+        <option value="En croissance">En croissance</option>
+        <option value="À récolter">À récolter</option>
+      </select>
+
+      <label for="taches">À faire :</label>
+      <textarea id="taches" name="taches" rows="3"></textarea>
+
+      <button type="submit">💾 Enregistrer</button>
+	  <button type="button" class="delete" onclick="supprimerPlantation()">🗑 Supprimer</button>
+    </form>
+  </div>
+
+  <script>
+    const selected = JSON.parse(localStorage.getItem("selectedPlant"));
+    if (!selected) {
+      document.body.innerHTML = "<p>❌ Aucune plantation sélectionnée.</p>";
+    } else {
+      document.getElementById("plantEmoji").textContent = selected.plant;
+      document.getElementById("quantite").value = selected.quantite;
+      document.getElementById("etat").value = selected.etat || "En croissance";
+      document.getElementById("taches").value = selected.taches || "Arroser tous les 2 jours";
+    }
+
+    document.getElementById("ficheForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      selected.quantite = parseInt(document.getElementById("quantite").value);
+      selected.etat = document.getElementById("etat").value;
+      selected.taches = document.getElementById("taches").value;
+
+      const plantations = JSON.parse(localStorage.getItem("plantations") || "[]");
+      const updated = plantations.map(p =>
+        p.plant === selected.plant && p.bac === selected.bac ? selected : p
+      );
+      localStorage.setItem("plantations", JSON.stringify(updated));
+      localStorage.setItem("selectedPlant", JSON.stringify(selected));
+
+      alert("✅ Plantation mise à jour !");
+      window.location.href = "index.html";
+    });
+
+    function supprimerPlantation() {
+      if (!confirm("Supprimer cette plantation ?")) return;
+      const plantations = JSON.parse(localStorage.getItem("plantations") || "[]");
+      const filtered = plantations.filter(p => !(p.plant === selected.plant && p.bac === selected.bac));
+      localStorage.setItem("plantations", JSON.stringify(filtered));
+      localStorage.removeItem("selectedPlant");
+      alert("🗑 Plantation supprimée.");
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>

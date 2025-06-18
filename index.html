@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Jardin - Interface</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.ico">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then(function(registration) {
+        console.log('Service Worker enregistré avec succès :', registration);
+      }).catch(function(error) {
+        console.log('Échec de l’enregistrement du Service Worker :', error);
+      });
+    }
+  </script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f0f0f0;
+    }
+
+    header {
+      text-align: center;
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 1rem;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 2;
+      font-weight: bold;
+    }
+
+    .jardin-container {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .jardin-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: contrast(110%) saturate(130%) brightness(1.1);
+    }
+
+    .bac {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      background-color: rgba(232, 245, 233, 0.6);
+      border: 2px solid #a5d6a7;
+      border-radius: 10px;
+      text-align: center;
+      padding-top: 0.5rem;
+      font-size: 16px;
+      overflow-wrap: break-word;
+    }
+
+    #bac1 { top: 40%; left: 50%; }
+    #bac2 { top: 65%; left: 35%; }
+    #bac3 { top: 40%; left: 75%; }
+	
+	.stock {
+      position: absolute;
+      ext-align: center;
+      padding-top: 0.5rem;
+      font-size: 50px;
+      overflow-wrap: break-word;
+	  cursor: pointer;
+	  transition: transform 0.3s ease;
+    }
+	.stock:hover {
+	  transform: scale(1.2);
+	}
+	
+	#stock_mat { top: 8%; left: 52%; }
+	#stock_plant { top: 20%; left: 52%; }
+	
+	.plant-info {
+	  position: relative;
+	  display: inline-block;
+	}
+
+	.tooltip {
+	  visibility: hidden;
+	  opacity: 0;
+	  position: absolute;
+	  top: -10px;
+	  left: 120%;
+	  background-color: #ffffff;
+	  color: #333;
+	  border: 2px solid #81d4fa;
+	  border-radius: 8px;
+	  padding: 0.8rem;
+	  width: 220px;
+	  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+	  transition: opacity 0.3s;
+	  z-index: 10;
+	  font-size: 0.9rem;
+	}
+
+	.plant-info:hover .tooltip {
+	  visibility: visible;
+	  opacity: 1;
+	}
+    .icone {
+      font-size: 24px;
+      margin: 0.2rem;
+      transition: transform 0.3s ease;
+      cursor: pointer;
+      display: block;
+    }
+
+    .icone:hover {
+      transform: scale(1.2); 
+    }
+
+    .menu-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: rgba(255, 255, 255, 0.95);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0.8rem 0;
+      z-index: 4;
+      border-top: 1px solid #ccc;
+    }
+
+    .menu-bar button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .menu-bar button:hover {
+      background-color: #45a049;
+    }
+	
+
+  </style>
+</head>
+<body>
+
+  <header>
+    🌿 Jardin Communautaire de la Bergerie
+  </header>
+
+  <div class="jardin-container">
+    <img src="img/jardin.png" alt="Vue du jardin" class="jardin-image">
+	<div class="stock" id="stock_mat">
+		<div onclick="window.location.href='stock_materiel.html'">🧰</div>
+	</div>
+	<div class="stock" id="stock_plant">
+		<div onclick="window.location.href='stock_plant.html'">🌱</div>
+	</div>
+    <div class="bac" id="bac1">
+      <div><strong>Bac 1</strong></div>
+    </div>
+    <div class="bac" id="bac2">
+      <div><strong>Bac 2</strong></div>
+    </div>
+    <div class="bac" id="bac3">
+      <div><strong>Bac 3</strong></div>
+    </div>
+  </div>
+
+  <div class="menu-bar">
+    <button onclick="window.location.href='ajout_plantation.html'">➕ Plantation</button>
+    <button onclick="window.location.href='stock_materiel.html'">🧰 Matériel</button>
+    <button onclick="window.location.href='stock_plant.html'">🌱 Plant</button>
+    <button onclick="localStorage.removeItem('plantations'); location.reload();">🧹 Vider</button>
+  </div>
+
+  <script>
+    window.onload = function () {
+      const plantations = JSON.parse(localStorage.getItem("plantations") || "[]");
+      const count = {};
+
+      plantations.forEach(({ plant, bac, quantite, etat, taches }) => {
+        const key = `bac${bac}-${plant}`;
+        if (!count[key]) count[key] = { plant, bac, quantite, etat, taches };
+        else count[key].quantite += quantite;
+      });
+
+      for (const key in count) {
+        const { plant, bac, quantite, etat, taches } = count[key];
+        const bacId = `bac${bac}`;
+
+        const span = document.createElement("span");
+        span.className = "icone";
+        span.textContent = `${plant}`;
+        span.onclick = () => {
+          localStorage.setItem("selectedPlant", JSON.stringify(count[key]));
+          window.location.href = "fiche_plantation.html";
+        };
+
+        const container = document.createElement("div");
+        container.className = "plant-info";
+        const tooltip = document.createElement("div");
+        tooltip.className = "tooltip";
+        tooltip.innerHTML = `<strong>Plant : ${plant}</strong><br>Quantité : ${quantite}<br>État : ${etat || "En croissance"}<br>À faire : ${taches || "Arroser"}`;
+
+        container.appendChild(span);
+        container.appendChild(tooltip);
+
+        const bacElement = document.getElementById(bacId);
+        if (bacElement) bacElement.appendChild(container);
+      }
+    };
+  </script>
+</body>
+</html>

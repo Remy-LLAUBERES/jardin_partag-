@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Suivi des Stocks de Plants & Graines</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f0f8f5;
+    }
+    h1 {
+      text-align: center;
+      color: #2e7d32;
+    }
+    .tabs {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .tabs button {
+      background-color: #a5d6a7;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      margin: 0 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+    .tabs button.active {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .formulaire, .prelevement {
+      background-color: #ffffff;
+      padding: 1.5rem;
+      border-radius: 10px;
+      max-width: 900px;
+      margin: 2rem auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: none;
+    }
+    .visible {
+      display: block;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.3rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button.submit {
+      margin-top: 1.5rem;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      color: white;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button.delete {
+      background-color: #e53935;
+      color: white;
+      border-radius: 6px;
+      border: none;
+      padding: 0.3rem 0.8rem;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      text-align: left;
+    }
+    th {
+      background-color: #e8f5e9;
+    }
+  </style>
+</head>
+<body>
+  <h1>Suivi des Stocks de Plants & Graines</h1>
+
+  <div class="tabs">
+    <button id="btnAjout" class="active" onclick="switchTab('ajout')">🌱 Ajouter un stock</button>
+    <button id="btnPrelev" onclick="switchTab('prelevement')">🧺 Prélever du stock</button>
+	<button id="btnRetour" onclick="window.location.href='index.html'">Retour</button>
+  </div>
+
+  <div class="formulaire visible" id="tabAjout">
+    <form id="formStock">
+      <label for="plant">Type de plant :</label>
+		<select id="plant" name="plant" required onchange="checkStock()">
+		  <option value="">-- Choisir un plant --</option>
+		  <option value="🍅">🍅 Tomate</option>
+		  <option value="🥕">🥕 Carotte</option>
+		  <option value="🥬">🥬 Salade</option>
+		  <option value="🌶️">🌶️ Piment</option>
+		  <option value="🎃">🎃 Citrouille</option>
+		</select>
+	  <label for="origine">Origine/Fournisseur :</label>
+      <input type="text" id="origine">
+      <label for="dateEntree">Date d'entrée :</label>
+      <input type="date" id="dateEntree">
+      <label for="quantite">Quantité initiale :</label>
+      <input type="number" id="quantite" min="1" required>
+      <label for="remarque">Remarque :</label>
+      <textarea id="remarque"></textarea>
+      <button type="submit" class="submit">Ajouter</button>
+    </form>
+    <table id="tableStock"></table>
+  </div>
+
+  <div class="prelevement" id="tabPrelev">
+    <form id="formPrelevement">
+      <label for="plantDispo">Choisir un stock :</label>
+      <select id="plantDispo"></select>
+      <label for="beneficiaire">Nom du bénéficiaire :</label>
+      <input type="text" id="beneficiaire" required>
+      <label for="quantitePrelevee">Quantité prélevée :</label>
+      <input type="number" id="quantitePrelevee" min="1" required>
+      <label for="datePrelev">Date de prélèvement :</label>
+      <input type="date" id="datePrelev">
+      <label for="remarquePrelev">Remarque :</label>
+      <textarea id="remarquePrelev"></textarea>
+      <button type="submit" class="submit">Valider le prélèvement</button>
+    </form>
+    <table id="tablePrelev"></table>
+  </div>
+
+  <script>
+    const btnAjout = document.getElementById("btnAjout");
+    const btnPrelev = document.getElementById("btnPrelev");
+    const tabAjout = document.getElementById("tabAjout");
+    const tabPrelev = document.getElementById("tabPrelev");
+    const plantSelect = document.getElementById("plantDispo");
+
+    function switchTab(tab) {
+      btnAjout.classList.remove("active");
+      btnPrelev.classList.remove("active");
+      tabAjout.classList.remove("visible");
+      tabPrelev.classList.remove("visible");
+
+      if (tab === "ajout") {
+        btnAjout.classList.add("active");
+        tabAjout.classList.add("visible");
+        updateStockTable();
+      } else {
+        btnPrelev.classList.add("active");
+        tabPrelev.classList.add("visible");
+        loadPlantOptions();
+        updatePrelevementTable();
+      }
+    }
+
+    document.getElementById("formStock").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const stock = {
+        nom: document.getElementById("plant").value,
+        origine: document.getElementById("origine").value,
+        dateEntree: document.getElementById("dateEntree").value,
+        quantite: parseInt(document.getElementById("quantite").value),
+        remarque: document.getElementById("remarque").value
+      };
+      const stocks = JSON.parse(localStorage.getItem("stocks") || "[]");
+      stocks.push(stock);
+      localStorage.setItem("stocks", JSON.stringify(stocks));
+      this.reset();
+      updateStockTable();
+    });
+
+    document.getElementById("formPrelevement").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const nom = plantSelect.value;
+      const prelev = {
+        nom,
+        beneficiaire: document.getElementById("beneficiaire").value,
+        quantite: parseInt(document.getElementById("quantitePrelevee").value),
+        date: document.getElementById("datePrelev").value,
+        remarque: document.getElementById("remarquePrelev").value
+      };
+      const stocks = JSON.parse(localStorage.getItem("stocks") || "[]");
+      const stock = stocks.find(s => s.nom === nom);
+      if (stock && stock.quantite >= prelev.quantite) {
+        stock.quantite -= prelev.quantite;
+        localStorage.setItem("stocks", JSON.stringify(stocks));
+        const preleves = JSON.parse(localStorage.getItem("preleves") || "[]");
+        preleves.push(prelev);
+        localStorage.setItem("preleves", JSON.stringify(preleves));
+        this.reset();
+        updateStockTable();
+        updatePrelevementTable();
+        loadPlantOptions();
+      } else {
+        alert("Quantité insuffisante");
+      }
+    });
+
+    function updateStockTable() {
+      const stocks = JSON.parse(localStorage.getItem("stocks") || "[]");
+      const table = document.getElementById("tableStock");
+      table.innerHTML = '<thead><tr><th>Nom</th><th>Origine</th><th>Date</th><th>Quantité</th><th>Remarque</th><th>Action</th></tr></thead><tbody>' +
+        stocks.map((s, i) => `<tr><td>${s.nom}</td><td>${s.origine}</td><td>${s.dateEntree}</td><td>${s.quantite}</td><td>${s.remarque || ''}</td><td><button class="delete" onclick="supprimerStock(${i})">Supprimer</button></td></tr>`).join('') + '</tbody>';
+    }
+
+    function updatePrelevementTable() {
+      const preleves = JSON.parse(localStorage.getItem("preleves") || "[]");
+      const table = document.getElementById("tablePrelev");
+      table.innerHTML = '<thead><tr><th>Nom</th><th>Bénéficiaire</th><th>Quantité</th><th>Date</th><th>Remarque</th></tr></thead><tbody>' +
+        preleves.map(p => `<tr><td>${p.nom}</td><td>${p.beneficiaire}</td><td>${p.quantite}</td><td>${p.date}</td><td>${p.remarque || ''}</td></tr>`).join('') + '</tbody>';
+    }
+
+    function supprimerStock(index) {
+      const stocks = JSON.parse(localStorage.getItem("stocks") || "[]");
+      stocks.splice(index, 1);
+      localStorage.setItem("stocks", JSON.stringify(stocks));
+      updateStockTable();
+      loadPlantOptions();
+    }
+
+    function loadPlantOptions() {
+      const stocks = JSON.parse(localStorage.getItem("stocks") || "[]");
+      plantSelect.innerHTML = "";
+      stocks.filter(s => s.quantite > 0).forEach(s => {
+        const option = document.createElement("option");
+        option.value = s.nom;
+        option.textContent = `${s.nom} (restant: ${s.quantite})`;
+        plantSelect.appendChild(option);
+      });
+    }
+
+    window.onload = () => switchTab('ajout');
+  </script>
+</body>
+</html>

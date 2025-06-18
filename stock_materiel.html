@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Suivi du Matériel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f0f8f5;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2e7d32;
+    }
+
+    .tabs {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .tabs button {
+      background-color: #a5d6a7;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      margin: 0 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
+    .tabs button.active {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .formulaire, .emprunt {
+      background-color: #ffffff;
+      padding: 1.5rem;
+      border-radius: 10px;
+      max-width: 900px;
+      margin: 2rem auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: none;
+    }
+
+    .visible {
+      display: block;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.3rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button.submit {
+      margin-top: 1.5rem;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      color: white;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button.submit:hover {
+      background-color: #388e3c;
+    }
+
+    button.delete {
+      background-color: #e53935;
+      margin-left: 1rem;
+      color: white;
+    }
+
+    button.delete:hover {
+      background-color: #c62828;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      text-align: left;
+    }
+
+    th {
+      background-color: #e8f5e9;
+    }
+  </style>
+</head>
+<body>
+  <h1>Suivi du Matériel</h1>
+
+  <div class="tabs">
+    <button id="btnAjout" class="active" onclick="switchTab('ajout')">➕ Ajouter un outil</button>
+    <button id="btnEmprunt" onclick="switchTab('emprunt')">📦 Emprunter un outil</button>
+	<button id="btnRetour" onclick="window.location.href='index.html'">Retour</button>
+  </div>
+
+  <div class="formulaire visible" id="tabAjout">
+    <form id="formOutil">
+      <label for="nom">Nom de l'outil :</label>
+      <input type="text" id="nom" required>
+
+      <label for="proprio">Propriétaire :</label>
+      <input type="text" id="proprio" required>
+
+      <label for="dateAjout">Date d'ajout :</label>
+      <input type="date" id="dateAjout" required>
+
+      <label for="etat">État :</label>
+      <select id="etat">
+        <option value="Disponible">Disponible</option>
+        <option value="Emprunté">Emprunté</option>
+        <option value="À réparer">À réparer</option>
+      </select>
+
+      <label for="remarques">Remarques :</label>
+      <textarea id="remarques"></textarea>
+
+      <button type="submit" class="submit">Ajouter</button>
+    </form>
+    <table id="tableAjout"></table>
+  </div>
+
+  <div class="emprunt" id="tabEmprunt">
+    <form id="formEmprunt">
+      <label for="outilDisponible">Choisir un outil disponible :</label>
+      <select id="outilDisponible"></select>
+
+      <label for="emprunteur">Nom de l'emprunteur :</label>
+      <input type="text" id="emprunteur" required>
+
+      <label for="dateEmprunt">Date d'emprunt :</label>
+      <input type="date" id="dateEmprunt" required>
+
+      <label for="remEmprunt">Remarque :</label>
+      <textarea id="remEmprunt"></textarea>
+
+      <button type="submit" class="submit">Valider l'emprunt</button>
+    </form>
+    <table id="tableEmprunt"></table>
+  </div>
+
+  <script>
+    const btnAjout = document.getElementById("btnAjout");
+    const btnEmprunt = document.getElementById("btnEmprunt");
+    const tabAjout = document.getElementById("tabAjout");
+    const tabEmprunt = document.getElementById("tabEmprunt");
+    const outilSelect = document.getElementById("outilDisponible");
+    const tableAjout = document.getElementById("tableAjout");
+    const tableEmprunt = document.getElementById("tableEmprunt");
+
+    function switchTab(tab) {
+      btnAjout.classList.remove("active");
+      btnEmprunt.classList.remove("active");
+      tabAjout.classList.remove("visible");
+      tabEmprunt.classList.remove("visible");
+
+      if (tab === "ajout") {
+        btnAjout.classList.add("active");
+        tabAjout.classList.add("visible");
+        updateAjoutTable();
+      } else {
+        btnEmprunt.classList.add("active");
+        tabEmprunt.classList.add("visible");
+        loadOutilsDisponibles();
+        updateEmpruntTable();
+      }
+    }
+
+    document.getElementById("formOutil").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const outil = {
+        nom: document.getElementById("nom").value,
+        proprio: document.getElementById("proprio").value,
+        dateAjout: document.getElementById("dateAjout").value,
+        etat: document.getElementById("etat").value,
+        remarques: document.getElementById("remarques").value
+      };
+      const outils = JSON.parse(localStorage.getItem("outils") || "[]");
+      outils.push(outil);
+      localStorage.setItem("outils", JSON.stringify(outils));
+      this.reset();
+      alert("Outil ajouté !");
+      updateAjoutTable();
+    });
+
+    document.getElementById("formEmprunt").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const nom = outilSelect.value;
+      const emprunteur = document.getElementById("emprunteur").value;
+      const dateEmprunt = document.getElementById("dateEmprunt").value;
+      const remarque = document.getElementById("remEmprunt").value;
+
+      let outils = JSON.parse(localStorage.getItem("outils") || "[]");
+      outils = outils.map(o => {
+        if (o.nom === nom && o.etat === "Disponible") {
+          o.etat = "Emprunté";
+          o.utilisateur = emprunteur;
+          o.retour = dateEmprunt;
+          o.remarques = remarque;
+        }
+        return o;
+      });
+      localStorage.setItem("outils", JSON.stringify(outils));
+      alert("Emprunt enregistré !");
+      this.reset();
+      loadOutilsDisponibles();
+      updateEmpruntTable();
+    });
+
+    function loadOutilsDisponibles() {
+      const outils = JSON.parse(localStorage.getItem("outils") || "[]");
+      outilSelect.innerHTML = "";
+      outils.filter(o => o.etat === "Disponible").forEach(o => {
+        const option = document.createElement("option");
+        option.value = o.nom;
+        option.textContent = o.nom;
+        outilSelect.appendChild(option);
+      });
+    }
+
+    function updateAjoutTable() {
+      const outils = JSON.parse(localStorage.getItem("outils") || "[]");
+      tableAjout.innerHTML = '<thead><tr><th>Nom</th><th>Propriétaire</th><th>Date</th><th>État</th><th>Remarques</th><th>Action</th></tr></thead><tbody>' +
+        outils.map((o, i) => `
+          <tr>
+            <td>${o.nom}</td>
+            <td>${o.proprio}</td>
+            <td>${o.dateAjout}</td>
+            <td>${o.etat}</td>
+            <td>${o.remarques || ''}</td>
+            <td><button class="delete" onclick="supprimerOutil(${i})">Supprimer</button></td>
+          </tr>`).join('') + '</tbody>';
+    }
+
+    function updateEmpruntTable() {
+      const outils = JSON.parse(localStorage.getItem("outils") || "[]");
+      tableEmprunt.innerHTML = '<thead><tr><th>Nom</th><th>Emprunteur</th><th>Date</th><th>Remarque</th><th>Action</th></tr></thead><tbody>' +
+        outils.filter(o => o.etat === "Emprunté").map((o, i) => `
+          <tr>
+            <td>${o.nom}</td>
+            <td>${o.utilisateur || '-'}</td>
+            <td>${o.retour || '-'}</td>
+            <td>${o.remarques || ''}</td>
+            <td><button class="submit" onclick="retournerOutil(${i})">Retour</button></td>
+          </tr>`).join('') + '</tbody>';
+    }
+
+    function supprimerOutil(index) {
+      const outils = JSON.parse(localStorage.getItem("outils") || "[]");
+      outils.splice(index, 1);
+      localStorage.setItem("outils", JSON.stringify(outils));
+      updateAjoutTable();
+      updateEmpruntTable();
+    }
+
+    function retournerOutil(index) {
+      let outils = JSON.parse(localStorage.getItem("outils") || "[]");
+      if (outils[index]) {
+        outils[index].etat = "Disponible";
+        delete outils[index].utilisateur;
+        delete outils[index].retour;
+        localStorage.setItem("outils", JSON.stringify(outils));
+        updateAjoutTable();
+        updateEmpruntTable();
+        loadOutilsDisponibles();
+        alert("✅ Outil retourné !");
+      }
+    }
+
+    window.onload = () => switchTab('ajout');
+  </script>
+</body>
+</html>
