@@ -10,136 +10,9 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="favicon.png">
   <title>Suivi des Stocks de Plants & Graines</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f8f5;
-      margin: 0;
-      padding: 1rem;
-    }
-
-    h1 {
-      text-align: center;
-      color: #2e7d32;
-      font-size: 1.8rem;
-      margin-bottom: 1rem;
-    }
-
-    .tabs {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .tabs button {
-      background-color: #a5d6a7;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      font-size: 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      flex: 1 1 auto;
-      max-width: 200px;
-    }
-
-    .tabs button.active {
-      background-color: #4CAF50;
-      color: white;
-    }
-
-    .formulaire, .prelevement {
-      background-color: #ffffff;
-      padding: 1.2rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      max-width: 600px;
-      margin: 0 auto 2rem;
-      display: none;
-    }
-
-    .visible {
-      display: block;
-    }
-
-    label {
-      display: block;
-      margin-top: 1rem;
-      font-weight: bold;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 0.5rem;
-      margin-top: 0.3rem;
-      font-size: 1rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-
-    button.submit, button.delete {
-      margin-top: 1rem;
-      padding: 0.6rem 1.2rem;
-      font-size: 1rem;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    button.submit {
-      background-color: #4CAF50;
-    }
-
-    button.submit:hover {
-      background-color: #388e3c;
-    }
-
-    button.delete {
-      background-color: #e53935;
-    }
-
-    button.delete:hover {
-      background-color: #c62828;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1.5rem;
-      overflow-x: auto;
-      display: block;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 0.5rem;
-      text-align: left;
-      font-size: 0.9rem;
-    }
-
-    th {
-      background-color: #e8f5e9;
-    }
-
-    @media (max-width: 500px) {
-      h1 {
-        font-size: 1.5rem;
-      }
-
-      .tabs button {
-        font-size: 0.9rem;
-        padding: 0.5rem;
-      }
-
-      button.submit, button.delete {
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
+  <script src="constants.js"></script>
+  <script src="app.js"></script>
 </head>
 <body>
   <h1>Suivi des Stocks de Plants & Graines</h1>
@@ -229,15 +102,16 @@
     document.getElementById("formStock").addEventListener("submit", function(e) {
       e.preventDefault();
       const stock = {
+        id: generateUniqueId(),
         nom: document.getElementById("plant").value,
         origine: document.getElementById("origine").value,
         dateEntree: document.getElementById("dateEntree").value,
         quantite: parseInt(document.getElementById("quantite").value),
         remarque: document.getElementById("remarque").value
       };
-      const stocks = JSON.parse(localStorage.getItem("stocks") || "[]");
+      const stocks = getFromStorage(STORAGE_KEYS.STOCKS, []);
       stocks.push(stock);
-      localStorage.setItem("stocks", JSON.stringify(stocks));
+      saveToStorage(STORAGE_KEYS.STOCKS, stocks);
       this.reset();
       updateStockTable();
     });
@@ -246,20 +120,21 @@
       e.preventDefault();
       const nom = plantSelect.value;
       const prelev = {
+        id: generateUniqueId(),
         nom,
         beneficiaire: document.getElementById("beneficiaire").value,
         quantite: parseInt(document.getElementById("quantitePrelevee").value),
         date: document.getElementById("datePrelev").value,
         remarque: document.getElementById("remarquePrelev").value
       };
-      const stocks = JSON.parse(localStorage.getItem("stocks") || "[]");
+      const stocks = getFromStorage(STORAGE_KEYS.STOCKS, []);
       const stock = stocks.find(s => s.nom === nom);
       if (stock && stock.quantite >= prelev.quantite) {
         stock.quantite -= prelev.quantite;
-        localStorage.setItem("stocks", JSON.stringify(stocks));
-        const preleves = JSON.parse(localStorage.getItem("preleves") || "[]");
+        saveToStorage(STORAGE_KEYS.STOCKS, stocks);
+        const preleves = getFromStorage(STORAGE_KEYS.PRELEVES, []);
         preleves.push(prelev);
-        localStorage.setItem("preleves", JSON.stringify(preleves));
+        saveToStorage(STORAGE_KEYS.PRELEVES, preleves);
         this.reset();
         updateStockTable();
         updatePrelevementTable();
@@ -270,29 +145,31 @@
     });
 
     function updateStockTable() {
-      const stocks = JSON.parse(localStorage.getItem("stocks") || "[]");
+      const stocks = getFromStorage(STORAGE_KEYS.STOCKS, []);
       const table = document.getElementById("tableStock");
       table.innerHTML = '<thead><tr><th>Nom</th><th>Origine</th><th>Date</th><th>Quantité</th><th>Remarque</th><th>Action</th></tr></thead><tbody>' +
-        stocks.map((s, i) => `<tr><td>${s.nom}</td><td>${s.origine}</td><td>${s.dateEntree}</td><td>${s.quantite}</td><td>${s.remarque || ''}</td><td><button class="delete" onclick="supprimerStock(${i})">Supprimer</button></td></tr>`).join('') + '</tbody>';
+        stocks.map((s) => `<tr><td>${s.nom}</td><td>${s.origine}</td><td>${s.dateEntree}</td><td>${s.quantite}</td><td>${s.remarque || ''}</td><td><button class="delete" onclick="supprimerStock('${s.id || ''}', '${s.nom}')">Supprimer</button></td></tr>`).join('') + '</tbody>';
     }
 
     function updatePrelevementTable() {
-      const preleves = JSON.parse(localStorage.getItem("preleves") || "[]");
+      const preleves = getFromStorage(STORAGE_KEYS.PRELEVES, []);
       const table = document.getElementById("tablePrelev");
       table.innerHTML = '<thead><tr><th>Nom</th><th>Bénéficiaire</th><th>Quantité</th><th>Date</th><th>Remarque</th></tr></thead><tbody>' +
         preleves.map(p => `<tr><td>${p.nom}</td><td>${p.beneficiaire}</td><td>${p.quantite}</td><td>${p.date}</td><td>${p.remarque || ''}</td></tr>`).join('') + '</tbody>';
     }
 
-    function supprimerStock(index) {
-      const stocks = JSON.parse(localStorage.getItem("stocks") || "[]");
-      stocks.splice(index, 1);
-      localStorage.setItem("stocks", JSON.stringify(stocks));
+    function supprimerStock(id, nom) {
+      if (!confirm("Voulez-vous vraiment supprimer ce stock ?")) return;
+      const stocks = getFromStorage(STORAGE_KEYS.STOCKS, []);
+      // Utiliser l'ID si disponible, sinon fallback sur le nom
+      const filtered = id ? stocks.filter(s => s.id !== id) : stocks.filter(s => s.nom !== nom);
+      saveToStorage(STORAGE_KEYS.STOCKS, filtered);
       updateStockTable();
       loadPlantOptions();
     }
 
     function loadPlantOptions() {
-      const stocks = JSON.parse(localStorage.getItem("stocks") || "[]");
+      const stocks = getFromStorage(STORAGE_KEYS.STOCKS, []);
       plantSelect.innerHTML = "";
       stocks.filter(s => s.quantite > 0).forEach(s => {
         const option = document.createElement("option");

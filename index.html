@@ -10,160 +10,11 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="favicon.png">
   <title>Jardin - Interface</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100dvh;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
-    }
-
-    header {
-      text-align: center;
-      background-color: rgba(255, 255, 255, 0.9);
-      padding: 1rem;
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      z-index: 2;
-      font-weight: bold;
-    }
-
-    .jardin-container {
-      position: relative;
-      width: 100%;
-      height: 100dvh;
-      overflow: hidden;
-    }
-
-    .jardin-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: contrast(110%) saturate(130%) brightness(1.1);
-    }
-
-    .bac {
-      position: absolute;
-      width: 28vw;
-      height: 28vw;
-      background-color: rgba(232, 245, 233, 0.6);
-      border: 2px solid #a5d6a7;
-      border-radius: 10px;
-      text-align: center;
-      padding-top: 0.5rem;
-      font-size: 3.5vw;
-      overflow-wrap: break-word;
-    }
-
-    #bac1 { top: 40%; left: 50%; transform: translate(-50%, -50%); }
-    #bac2 { top: 65%; left: 35%; transform: translate(-50%, -50%); }
-    #bac3 { top: 40%; left: 75%; transform: translate(-50%, -50%); }
-
-    .stock {
-      position: absolute;
-      padding-top: 0.5rem;
-      font-size: 10vw;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
-
-    .stock:hover {
-      transform: scale(1.2);
-    }
-
-    #stock_mat { top: 8%; left: 52%; transform: translateX(-50%); }
-    #stock_plant { top: 20%; left: 52%; transform: translateX(-50%); }
-
-    .plant-info {
-      position: relative;
-      display: inline-block;
-    }
-
-    .tooltip {
-      display: none;
-      position: absolute;
-      top: -10px;
-      left: 120%;
-      background-color: #ffffff;
-      color: #333;
-      border: 2px solid #81d4fa;
-      border-radius: 8px;
-      padding: 0.8rem;
-      width: 220px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      z-index: 10;
-      font-size: 0.9rem;
-    }
-
-    .icone {
-      font-size: 5vw;
-      margin: 0.2rem;
-      transition: transform 0.3s ease;
-      cursor: pointer;
-      display: block;
-    }
-
-    .icone:hover {
-      transform: scale(1.2); 
-    }
-
-    .menu-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background-color: rgba(255, 255, 255, 0.95);
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 0.6rem 0;
-      z-index: 4;
-      border-top: 1px solid #ccc;
-      font-size: 0.9rem;
-    }
-
-    .menu-bar button {
-      background-color: #4CAF50;
-      border: none;
-      color: white;
-      font-size: 1.1rem;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      flex: 1;
-      margin: 0 0.3rem;
-      min-width: 20%;
-      max-width: 25%;
-      white-space: nowrap;
-    }
-
-    .menu-bar button:hover {
-      background-color: #45a049;
-    }
-
-    @media (max-width: 400px) {
-      .bac {
-        width: 36vw;
-        height: 36vw;
-        font-size: 4vw;
-      }
-
-      .icone {
-        font-size: 6vw;
-      }
-
-      .menu-bar button {
-        font-size: 1rem;
-        padding: 0.3rem 0.6rem;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
+  <script src="constants.js"></script>
+  <script src="app.js"></script>
 </head>
-<body>
+<body class="jardin-page">
 
   <header>🌿 Jardin Communautaire de la Bergerie</header>
 
@@ -180,12 +31,12 @@
     <button onclick="window.location.href='ajout_plantation.html'">➕ Plantation</button>
     <button onclick="window.location.href='stock_materiel.html'">🧰 Matériel</button>
     <button onclick="window.location.href='stock_plant.html'">🌱 Plant</button>
-    <button onclick="localStorage.removeItem('plantations'); location.reload();">🧹 Vider</button>
+    <button onclick="if(confirm('⚠️ Attention ! Voulez-vous vraiment supprimer TOUTES les plantations ? Cette action est irréversible.')) { localStorage.removeItem('plantations'); location.reload(); }">🧹 Vider</button>
   </div>
 
   <script>
     window.onload = function () {
-      const plantations = JSON.parse(localStorage.getItem("plantations") || "[]");
+      const plantations = getFromStorage(STORAGE_KEYS.PLANTATIONS, []);
       const count = {};
 
       plantations.forEach(({ plant, bac, quantite, etat, taches }) => {
@@ -218,7 +69,10 @@
         };
 
         span.onclick = () => {
-          localStorage.setItem("selectedPlant", JSON.stringify(count[key]));
+          // Trouver la première plantation correspondante pour avoir un ID
+          const firstPlant = plantations.find(p => p.plant === plant && p.bac === bac);
+          const selectedData = firstPlant && firstPlant.id ? firstPlant : count[key];
+          saveToStorage(STORAGE_KEYS.SELECTED_PLANT, selectedData);
           window.location.href = "fiche_plantation.html";
         };
 

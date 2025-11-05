@@ -10,93 +10,9 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="favicon.png">
   <title>Fiche de la Plantation</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f5fff4;
-      margin: 0;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    h1 {
-      text-align: center;
-      color: #2e7d32;
-      font-size: 1.8rem;
-      margin-bottom: 1rem;
-    }
-
-    .fiche {
-      background: #ffffff;
-      padding: 1.5rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 450px;
-    }
-
-    label {
-      display: block;
-      margin-top: 1rem;
-      font-weight: bold;
-    }
-
-    input,
-    textarea,
-    select {
-      width: 100%;
-      padding: 0.6rem;
-      margin-top: 0.3rem;
-      font-size: 1rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-
-    #plantEmoji {
-      font-size: 2rem;
-      text-align: center;
-      margin-bottom: 0.5rem;
-    }
-
-    button {
-      margin-top: 1.5rem;
-      padding: 0.75rem;
-      font-size: 1.1rem;
-      color: white;
-      background-color: #4CAF50;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    button:hover {
-      background-color: #388e3c;
-    }
-
-    .delete {
-      background-color: #e53935;
-      margin-top: 1rem;
-    }
-
-    .delete:hover {
-      background-color: #c62828;
-    }
-
-    @media (max-width: 400px) {
-      h1 {
-        font-size: 1.5rem;
-      }
-
-      button {
-        font-size: 1rem;
-        padding: 0.6rem;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
+  <script src="constants.js"></script>
+  <script src="app.js"></script>
 </head>
 <body>
   <h1>Fiche de la Plantation</h1>
@@ -140,12 +56,15 @@
       selected.etat = document.getElementById("etat").value;
       selected.taches = document.getElementById("taches").value;
 
-      const plantations = JSON.parse(localStorage.getItem("plantations") || "[]");
-      const updated = plantations.map(p =>
-        p.plant === selected.plant && p.bac === selected.bac ? selected : p
-      );
-      localStorage.setItem("plantations", JSON.stringify(updated));
-      localStorage.setItem("selectedPlant", JSON.stringify(selected));
+      const plantations = getFromStorage(STORAGE_KEYS.PLANTATIONS, []);
+      // Utiliser l'ID si disponible, sinon fallback sur plant+bac
+      const updated = plantations.map(p => {
+        if (selected.id && p.id === selected.id) return selected;
+        if (!selected.id && p.plant === selected.plant && p.bac === selected.bac) return selected;
+        return p;
+      });
+      saveToStorage(STORAGE_KEYS.PLANTATIONS, updated);
+      saveToStorage(STORAGE_KEYS.SELECTED_PLANT, selected);
 
       alert("✅ Plantation mise à jour !");
       window.location.href = "index.html";
@@ -153,10 +72,14 @@
 
     function supprimerPlantation() {
       if (!confirm("Supprimer cette plantation ?")) return;
-      const plantations = JSON.parse(localStorage.getItem("plantations") || "[]");
-      const filtered = plantations.filter(p => !(p.plant === selected.plant && p.bac === selected.bac));
-      localStorage.setItem("plantations", JSON.stringify(filtered));
-      localStorage.removeItem("selectedPlant");
+      const plantations = getFromStorage(STORAGE_KEYS.PLANTATIONS, []);
+      // Utiliser l'ID si disponible, sinon fallback sur plant+bac
+      const filtered = plantations.filter(p => {
+        if (selected.id && p.id) return p.id !== selected.id;
+        return !(p.plant === selected.plant && p.bac === selected.bac);
+      });
+      saveToStorage(STORAGE_KEYS.PLANTATIONS, filtered);
+      removeFromStorage(STORAGE_KEYS.SELECTED_PLANT);
       alert("🗑 Plantation supprimée.");
       window.location.href = "index.html";
     }

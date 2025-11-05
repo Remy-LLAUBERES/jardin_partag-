@@ -10,88 +10,9 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="favicon.png">
   <title>Ajouter une Plantation</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f8f5;
-      margin: 0;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    h1 {
-      color: #2e7d32;
-      text-align: center;
-      font-size: 1.8rem;
-      margin-bottom: 1rem;
-    }
-
-    form {
-      background-color: white;
-      padding: 1.5rem;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 400px;
-    }
-
-    label {
-      display: block;
-      margin-top: 1rem;
-      margin-bottom: 0.5rem;
-      font-weight: bold;
-      font-size: 1rem;
-    }
-
-    select,
-    input[type="number"] {
-      width: 100%;
-      padding: 0.6rem;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-    }
-
-    button {
-      margin-top: 2rem;
-      padding: 0.75rem 1.5rem;
-      font-size: 1.1rem;
-      color: white;
-      background-color: #4CAF50;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    button:hover {
-      background-color: #388e3c;
-    }
-
-    #stockInfo {
-      display: none;
-      font-size: 0.9rem;
-      color: #2e7d32;
-      margin-top: 0.5rem;
-    }
-
-    @media (max-width: 400px) {
-      h1 {
-        font-size: 1.5rem;
-      }
-
-      label {
-        font-size: 0.95rem;
-      }
-
-      button {
-        font-size: 1rem;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
+  <script src="constants.js"></script>
+  <script src="app.js"></script>
 </head>
 <body>
   <h1>Ajouter une Plantation</h1>
@@ -155,20 +76,28 @@
       }
 
       if (useStock) {
-        const stocks = JSON.parse(localStorage.getItem("stocks") || "[]");
-        const index = stocks.findIndex(s => s.nom.trim() === plant.trim());
-        if (index === -1 || stocks[index].quantite < quantite) {
+        const stocks = getFromStorage(STORAGE_KEYS.STOCKS, []);
+        const stockItem = stocks.find(s => s.nom.trim() === plant.trim());
+        if (!stockItem || stockItem.quantite < quantite) {
           alert("Stock insuffisant pour cette plantation.");
           return false;
         }
-        stocks[index].quantite -= quantite;
-        localStorage.setItem("stocks", JSON.stringify(stocks));
+        stockItem.quantite -= quantite;
+        saveToStorage(STORAGE_KEYS.STOCKS, stocks);
       }
 
-      const newEntry = { plant, quantite, bac };
-      const plantations = JSON.parse(localStorage.getItem("plantations") || "[]");
+      const newEntry = {
+        id: generateUniqueId(),
+        plant,
+        quantite,
+        bac,
+        etat: 'Semé',
+        taches: 'Arroser régulièrement',
+        dateAjout: getTodayDate()
+      };
+      const plantations = getFromStorage(STORAGE_KEYS.PLANTATIONS, []);
       plantations.push(newEntry);
-      localStorage.setItem("plantations", JSON.stringify(plantations));
+      saveToStorage(STORAGE_KEYS.PLANTATIONS, plantations);
       alert("Plantation ajoutée !");
       window.location.href = "index.html";
       return false;

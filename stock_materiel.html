@@ -10,138 +10,9 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="favicon.png">
   <title>Suivi du Matériel</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f8f5;
-      margin: 0;
-      padding: 1rem;
-    }
-
-    h1 {
-      text-align: center;
-      color: #2e7d32;
-      font-size: 1.8rem;
-      margin-bottom: 1rem;
-    }
-
-    .tabs {
-      text-align: center;
-      margin-bottom: 1.5rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      justify-content: center;
-    }
-
-    .tabs button {
-      background-color: #a5d6a7;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      font-size: 1rem;
-      cursor: pointer;
-      border-radius: 8px;
-      flex: 1 1 auto;
-      max-width: 200px;
-    }
-
-    .tabs button.active {
-      background-color: #4CAF50;
-      color: white;
-    }
-
-    .formulaire, .emprunt {
-      background-color: #ffffff;
-      padding: 1.2rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      max-width: 600px;
-      margin: 0 auto 2rem;
-      display: none;
-    }
-
-    .visible {
-      display: block;
-    }
-
-    label {
-      display: block;
-      margin-top: 1rem;
-      font-weight: bold;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 0.5rem;
-      margin-top: 0.3rem;
-      font-size: 1rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-
-    button.submit, button.delete {
-      margin-top: 1rem;
-      padding: 0.6rem 1.2rem;
-      font-size: 1rem;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    button.submit {
-      background-color: #4CAF50;
-    }
-
-    button.submit:hover {
-      background-color: #388e3c;
-    }
-
-    button.delete {
-      background-color: #e53935;
-      margin-left: 0.5rem;
-    }
-
-    button.delete:hover {
-      background-color: #c62828;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1.5rem;
-      overflow-x: auto;
-      display: block;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 0.5rem;
-      text-align: left;
-      font-size: 0.9rem;
-    }
-
-    th {
-      background-color: #e8f5e9;
-    }
-
-    @media (max-width: 500px) {
-      h1 {
-        font-size: 1.5rem;
-      }
-
-      .tabs button {
-        font-size: 0.9rem;
-        padding: 0.5rem;
-      }
-
-      button.submit, button.delete {
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
+  <script src="constants.js"></script>
+  <script src="app.js"></script>
 </head>
 <body>
   <h1>Suivi du Matériel</h1>
@@ -227,15 +98,16 @@
     document.getElementById("formOutil").addEventListener("submit", function(e) {
       e.preventDefault();
       const outil = {
+        id: generateUniqueId(),
         nom: document.getElementById("nom").value,
         proprio: document.getElementById("proprio").value,
         dateAjout: document.getElementById("dateAjout").value,
         etat: document.getElementById("etat").value,
         remarques: document.getElementById("remarques").value
       };
-      const outils = JSON.parse(localStorage.getItem("outils") || "[]");
+      const outils = getFromStorage(STORAGE_KEYS.OUTILS, []);
       outils.push(outil);
-      localStorage.setItem("outils", JSON.stringify(outils));
+      saveToStorage(STORAGE_KEYS.OUTILS, outils);
       this.reset();
       alert("Outil ajouté !");
       updateAjoutTable();
@@ -248,7 +120,7 @@
       const dateEmprunt = document.getElementById("dateEmprunt").value;
       const remarque = document.getElementById("remEmprunt").value;
 
-      let outils = JSON.parse(localStorage.getItem("outils") || "[]");
+      let outils = getFromStorage(STORAGE_KEYS.OUTILS, []);
       outils = outils.map(o => {
         if (o.nom === nom && o.etat === "Disponible") {
           o.etat = "Emprunté";
@@ -258,7 +130,7 @@
         }
         return o;
       });
-      localStorage.setItem("outils", JSON.stringify(outils));
+      saveToStorage(STORAGE_KEYS.OUTILS, outils);
       alert("Emprunt enregistré !");
       this.reset();
       loadOutilsDisponibles();
@@ -266,7 +138,7 @@
     });
 
     function loadOutilsDisponibles() {
-      const outils = JSON.parse(localStorage.getItem("outils") || "[]");
+      const outils = getFromStorage(STORAGE_KEYS.OUTILS, []);
       outilSelect.innerHTML = "";
       outils.filter(o => o.etat === "Disponible").forEach(o => {
         const option = document.createElement("option");
@@ -277,47 +149,51 @@
     }
 
     function updateAjoutTable() {
-      const outils = JSON.parse(localStorage.getItem("outils") || "[]");
+      const outils = getFromStorage(STORAGE_KEYS.OUTILS, []);
       tableAjout.innerHTML = '<thead><tr><th>Nom</th><th>Propriétaire</th><th>Date</th><th>État</th><th>Remarques</th><th>Action</th></tr></thead><tbody>' +
-        outils.map((o, i) => `
+        outils.map((o) => `
           <tr>
             <td>${o.nom}</td>
             <td>${o.proprio}</td>
             <td>${o.dateAjout}</td>
             <td>${o.etat}</td>
             <td>${o.remarques || ''}</td>
-            <td><button class="delete" onclick="supprimerOutil(${i})">Supprimer</button></td>
+            <td><button class="delete" onclick="supprimerOutil('${o.id || ''}', '${o.nom}')">Supprimer</button></td>
           </tr>`).join('') + '</tbody>';
     }
 
     function updateEmpruntTable() {
-      const outils = JSON.parse(localStorage.getItem("outils") || "[]");
+      const outils = getFromStorage(STORAGE_KEYS.OUTILS, []);
       tableEmprunt.innerHTML = '<thead><tr><th>Nom</th><th>Emprunteur</th><th>Date</th><th>Remarque</th><th>Action</th></tr></thead><tbody>' +
-        outils.filter(o => o.etat === "Emprunté").map((o, i) => `
+        outils.filter(o => o.etat === "Emprunté").map((o) => `
           <tr>
             <td>${o.nom}</td>
             <td>${o.utilisateur || '-'}</td>
             <td>${o.retour || '-'}</td>
             <td>${o.remarques || ''}</td>
-            <td><button class="submit" onclick="retournerOutil(${i})">Retour</button></td>
+            <td><button class="submit" onclick="retournerOutil('${o.id || ''}', '${o.nom}')">Retour</button></td>
           </tr>`).join('') + '</tbody>';
     }
 
-    function supprimerOutil(index) {
-      const outils = JSON.parse(localStorage.getItem("outils") || "[]");
-      outils.splice(index, 1);
-      localStorage.setItem("outils", JSON.stringify(outils));
+    function supprimerOutil(id, nom) {
+      if (!confirm("Voulez-vous vraiment supprimer cet outil ?")) return;
+      const outils = getFromStorage(STORAGE_KEYS.OUTILS, []);
+      // Utiliser l'ID si disponible, sinon fallback sur le nom
+      const filtered = id ? outils.filter(o => o.id !== id) : outils.filter(o => o.nom !== nom);
+      saveToStorage(STORAGE_KEYS.OUTILS, filtered);
       updateAjoutTable();
       updateEmpruntTable();
     }
 
-    function retournerOutil(index) {
-      let outils = JSON.parse(localStorage.getItem("outils") || "[]");
-      if (outils[index]) {
-        outils[index].etat = "Disponible";
-        delete outils[index].utilisateur;
-        delete outils[index].retour;
-        localStorage.setItem("outils", JSON.stringify(outils));
+    function retournerOutil(id, nom) {
+      let outils = getFromStorage(STORAGE_KEYS.OUTILS, []);
+      // Trouver l'outil par ID ou par nom
+      const outil = id ? outils.find(o => o.id === id) : outils.find(o => o.nom === nom);
+      if (outil) {
+        outil.etat = "Disponible";
+        delete outil.utilisateur;
+        delete outil.retour;
+        saveToStorage(STORAGE_KEYS.OUTILS, outils);
         updateAjoutTable();
         updateEmpruntTable();
         loadOutilsDisponibles();
