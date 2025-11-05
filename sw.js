@@ -8,6 +8,7 @@ self.addEventListener('install', function(e) {
         './fiche_plantation.html',
         './stock_materiel.html',
         './stock_plant.html',
+        './parametres.html',
         './styles.css',
         './constants.js',
         './app.js',

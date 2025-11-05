@@ -107,7 +107,8 @@
         origine: document.getElementById("origine").value,
         dateEntree: document.getElementById("dateEntree").value,
         quantite: parseInt(document.getElementById("quantite").value),
-        remarque: document.getElementById("remarque").value
+        remarque: document.getElementById("remarque").value,
+        membre: ensureMember()
       };
       const stocks = getFromStorage(STORAGE_KEYS.STOCKS, []);
       stocks.push(stock);
@@ -125,7 +126,8 @@
         beneficiaire: document.getElementById("beneficiaire").value,
         quantite: parseInt(document.getElementById("quantitePrelevee").value),
         date: document.getElementById("datePrelev").value,
-        remarque: document.getElementById("remarquePrelev").value
+        remarque: document.getElementById("remarquePrelev").value,
+        membre: ensureMember()
       };
       const stocks = getFromStorage(STORAGE_KEYS.STOCKS, []);
       const stock = stocks.find(s => s.nom === nom);
@@ -147,15 +149,25 @@
     function updateStockTable() {
       const stocks = getFromStorage(STORAGE_KEYS.STOCKS, []);
       const table = document.getElementById("tableStock");
-      table.innerHTML = '<thead><tr><th>Nom</th><th>Origine</th><th>Date</th><th>Quantité</th><th>Remarque</th><th>Action</th></tr></thead><tbody>' +
-        stocks.map((s) => `<tr><td>${s.nom}</td><td>${s.origine}</td><td>${s.dateEntree}</td><td>${s.quantite}</td><td>${s.remarque || ''}</td><td><button class="delete" onclick="supprimerStock('${s.id || ''}', '${s.nom}')">Supprimer</button></td></tr>`).join('') + '</tbody>';
+
+      if (stocks.length === 0) {
+        table.innerHTML = '<div class="empty-state">📦 Aucun stock de plants/graines enregistré.<br>Ajoutez votre premier stock ci-dessus !</div>';
+      } else {
+        table.innerHTML = '<thead><tr><th>Nom</th><th>Origine</th><th>Date</th><th>Quantité</th><th>Remarque</th><th>Action</th></tr></thead><tbody>' +
+          stocks.map((s) => `<tr><td>${s.nom}</td><td>${s.origine}</td><td>${s.dateEntree}</td><td>${s.quantite}</td><td>${s.remarque || ''}</td><td><button class="delete" onclick="supprimerStock('${s.id || ''}', '${s.nom}')">Supprimer</button></td></tr>`).join('') + '</tbody>';
+      }
     }
 
     function updatePrelevementTable() {
       const preleves = getFromStorage(STORAGE_KEYS.PRELEVES, []);
       const table = document.getElementById("tablePrelev");
-      table.innerHTML = '<thead><tr><th>Nom</th><th>Bénéficiaire</th><th>Quantité</th><th>Date</th><th>Remarque</th></tr></thead><tbody>' +
-        preleves.map(p => `<tr><td>${p.nom}</td><td>${p.beneficiaire}</td><td>${p.quantite}</td><td>${p.date}</td><td>${p.remarque || ''}</td></tr>`).join('') + '</tbody>';
+
+      if (preleves.length === 0) {
+        table.innerHTML = '<div class="empty-state">🧺 Aucun prélèvement enregistré.<br>Les prélèvements apparaîtront ici.</div>';
+      } else {
+        table.innerHTML = '<thead><tr><th>Nom</th><th>Bénéficiaire</th><th>Quantité</th><th>Date</th><th>Remarque</th></tr></thead><tbody>' +
+          preleves.map(p => `<tr><td>${p.nom}</td><td>${p.beneficiaire}</td><td>${p.quantite}</td><td>${p.date}</td><td>${p.remarque || ''}</td></tr>`).join('') + '</tbody>';
+      }
     }
 
     function supprimerStock(id, nom) {

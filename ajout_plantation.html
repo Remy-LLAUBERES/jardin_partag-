@@ -93,7 +93,8 @@
         bac,
         etat: 'Semé',
         taches: 'Arroser régulièrement',
-        dateAjout: getTodayDate()
+        dateAjout: getTodayDate(),
+        membre: ensureMember()
       };
       const plantations = getFromStorage(STORAGE_KEYS.PLANTATIONS, []);
       plantations.push(newEntry);

@@ -16,7 +16,10 @@
 </head>
 <body class="jardin-page">
 
-  <header>🌿 Jardin Communautaire de la Bergerie</header>
+  <header>
+    <span>🌿 Jardin Communautaire de la Bergerie</span>
+    <span id="currentMember" style="position: absolute; right: 1rem; font-size: 0.9rem; font-weight: normal;"></span>
+  </header>
 
   <div class="jardin-container">
     <img src="jardin.png" alt="Vue du jardin" class="jardin-image">
@@ -31,11 +34,14 @@
     <button onclick="window.location.href='ajout_plantation.html'">➕ Plantation</button>
     <button onclick="window.location.href='stock_materiel.html'">🧰 Matériel</button>
     <button onclick="window.location.href='stock_plant.html'">🌱 Plant</button>
-    <button onclick="if(confirm('⚠️ Attention ! Voulez-vous vraiment supprimer TOUTES les plantations ? Cette action est irréversible.')) { localStorage.removeItem('plantations'); location.reload(); }">🧹 Vider</button>
+    <button onclick="window.location.href='parametres.html'">⚙️ Paramètres</button>
   </div>
 
   <script>
     window.onload = function () {
+      // Afficher le membre actuel
+      displayCurrentMember('currentMember');
+
       const plantations = getFromStorage(STORAGE_KEYS.PLANTATIONS, []);
       const count = {};
 
@@ -45,9 +51,13 @@
         else count[key].quantite += quantite;
       });
 
+      // Tracker les bacs qui ont des plantations
+      const bacsWithPlants = new Set();
+
       for (const key in count) {
         const { plant, bac, quantite, etat, taches } = count[key];
         const bacId = `bac${bac}`;
+        bacsWithPlants.add(bac);
 
         const span = document.createElement("span");
         span.className = "icone";
@@ -82,6 +92,21 @@
         const bacElement = document.getElementById(bacId);
         if (bacElement) bacElement.appendChild(container);
       }
+
+      // Afficher un message pour les bacs vides
+      [1, 2, 3].forEach(bacNum => {
+        if (!bacsWithPlants.has(bacNum)) {
+          const bacElement = document.getElementById(`bac${bacNum}`);
+          if (bacElement) {
+            const emptyMsg = document.createElement('div');
+            emptyMsg.className = 'empty-state';
+            emptyMsg.style.fontSize = '0.9rem';
+            emptyMsg.style.marginTop = '1rem';
+            emptyMsg.textContent = '🌱 Vide';
+            bacElement.appendChild(emptyMsg);
+          }
+        }
+      });
 
       // Hide tooltip when clicking outside
       document.body.addEventListener('click', () => {

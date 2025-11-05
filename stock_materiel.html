@@ -103,7 +103,8 @@
         proprio: document.getElementById("proprio").value,
         dateAjout: document.getElementById("dateAjout").value,
         etat: document.getElementById("etat").value,
-        remarques: document.getElementById("remarques").value
+        remarques: document.getElementById("remarques").value,
+        membre: ensureMember()
       };
       const outils = getFromStorage(STORAGE_KEYS.OUTILS, []);
       outils.push(outil);
@@ -121,12 +122,14 @@
       const remarque = document.getElementById("remEmprunt").value;
 
       let outils = getFromStorage(STORAGE_KEYS.OUTILS, []);
+      const membreActuel = ensureMember();
       outils = outils.map(o => {
         if (o.nom === nom && o.etat === "Disponible") {
           o.etat = "Emprunté";
           o.utilisateur = emprunteur;
           o.retour = dateEmprunt;
           o.remarques = remarque;
+          o.membreEmprunt = membreActuel;
         }
         return o;
       });
@@ -150,29 +153,40 @@
 
     function updateAjoutTable() {
       const outils = getFromStorage(STORAGE_KEYS.OUTILS, []);
-      tableAjout.innerHTML = '<thead><tr><th>Nom</th><th>Propriétaire</th><th>Date</th><th>État</th><th>Remarques</th><th>Action</th></tr></thead><tbody>' +
-        outils.map((o) => `
-          <tr>
-            <td>${o.nom}</td>
-            <td>${o.proprio}</td>
-            <td>${o.dateAjout}</td>
-            <td>${o.etat}</td>
-            <td>${o.remarques || ''}</td>
-            <td><button class="delete" onclick="supprimerOutil('${o.id || ''}', '${o.nom}')">Supprimer</button></td>
-          </tr>`).join('') + '</tbody>';
+
+      if (outils.length === 0) {
+        tableAjout.innerHTML = '<div class="empty-state">🧰 Aucun outil enregistré.<br>Ajoutez votre premier outil ci-dessus !</div>';
+      } else {
+        tableAjout.innerHTML = '<thead><tr><th>Nom</th><th>Propriétaire</th><th>Date</th><th>État</th><th>Remarques</th><th>Action</th></tr></thead><tbody>' +
+          outils.map((o) => `
+            <tr>
+              <td>${o.nom}</td>
+              <td>${o.proprio}</td>
+              <td>${o.dateAjout}</td>
+              <td>${o.etat}</td>
+              <td>${o.remarques || ''}</td>
+              <td><button class="delete" onclick="supprimerOutil('${o.id || ''}', '${o.nom}')">Supprimer</button></td>
+            </tr>`).join('') + '</tbody>';
+      }
     }
 
     function updateEmpruntTable() {
       const outils = getFromStorage(STORAGE_KEYS.OUTILS, []);
-      tableEmprunt.innerHTML = '<thead><tr><th>Nom</th><th>Emprunteur</th><th>Date</th><th>Remarque</th><th>Action</th></tr></thead><tbody>' +
-        outils.filter(o => o.etat === "Emprunté").map((o) => `
-          <tr>
-            <td>${o.nom}</td>
-            <td>${o.utilisateur || '-'}</td>
-            <td>${o.retour || '-'}</td>
-            <td>${o.remarques || ''}</td>
-            <td><button class="submit" onclick="retournerOutil('${o.id || ''}', '${o.nom}')">Retour</button></td>
-          </tr>`).join('') + '</tbody>';
+      const empruntes = outils.filter(o => o.etat === "Emprunté");
+
+      if (empruntes.length === 0) {
+        tableEmprunt.innerHTML = '<div class="empty-state">📦 Aucun outil emprunté actuellement.<br>Tous les outils sont disponibles !</div>';
+      } else {
+        tableEmprunt.innerHTML = '<thead><tr><th>Nom</th><th>Emprunteur</th><th>Date</th><th>Remarque</th><th>Action</th></tr></thead><tbody>' +
+          empruntes.map((o) => `
+            <tr>
+              <td>${o.nom}</td>
+              <td>${o.utilisateur || '-'}</td>
+              <td>${o.retour || '-'}</td>
+              <td>${o.remarques || ''}</td>
+              <td><button class="submit" onclick="retournerOutil('${o.id || ''}', '${o.nom}')">Retour</button></td>
+            </tr>`).join('') + '</tbody>';
+      }
     }
 
     function supprimerOutil(id, nom) {

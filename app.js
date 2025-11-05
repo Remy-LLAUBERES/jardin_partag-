@@ -316,3 +316,91 @@ function filterItems(items, searchText, fields) {
 function confirmAction(message) {
   return confirm(message);
 }
+
+// ===== GESTION DES MEMBRES =====
+
+/**
+ * Récupère le membre actuel
+ * @returns {string|null} Nom du membre ou null
+ */
+function getCurrentMember() {
+  return getFromStorage(STORAGE_KEYS.CURRENT_USER, null);
+}
+
+/**
+ * Définit le membre actuel
+ * @param {string} name - Nom du membre
+ * @returns {boolean} true si succès
+ */
+function setCurrentMember(name) {
+  if (!name || name.trim() === '') return false;
+  return saveToStorage(STORAGE_KEYS.CURRENT_USER, name.trim());
+}
+
+/**
+ * Demande à l'utilisateur de s'identifier
+ * @returns {string|null} Nom du membre ou null si annulé
+ */
+function promptForMember() {
+  const currentMember = getCurrentMember();
+  const name = prompt(
+    currentMember
+      ? `Membre actuel: ${currentMember}\n\nChanger de membre ? (laisser vide pour garder ${currentMember})`
+      : 'Entrez votre nom pour vous identifier:',
+    currentMember || ''
+  );
+
+  if (name === null) return currentMember; // Annulé
+  if (name.trim() === '') return currentMember; // Vide = garder actuel
+
+  setCurrentMember(name);
+  return name;
+}
+
+/**
+ * Assure qu'un membre est identifié
+ * @returns {string} Nom du membre
+ */
+function ensureMember() {
+  let member = getCurrentMember();
+  if (!member) {
+    member = promptForMember();
+    if (!member) {
+      member = 'Anonyme';
+      setCurrentMember(member);
+    }
+  }
+  return member;
+}
+
+/**
+ * Affiche le membre actuel dans un élément HTML
+ * @param {string} elementId - ID de l'élément où afficher
+ */
+function displayCurrentMember(elementId) {
+  const element = document.getElementById(elementId);
+  if (!element) return;
+
+  const member = getCurrentMember();
+  if (member) {
+    element.innerHTML = `👤 ${member}`;
+    element.style.cursor = 'pointer';
+    element.onclick = () => {
+      const newMember = promptForMember();
+      if (newMember) {
+        displayCurrentMember(elementId);
+        showSuccessMessage(`Membre changé: ${newMember}`);
+      }
+    };
+  } else {
+    element.innerHTML = '👤 Se connecter';
+    element.style.cursor = 'pointer';
+    element.onclick = () => {
+      const newMember = promptForMember();
+      if (newMember) {
+        displayCurrentMember(elementId);
+        showSuccessMessage(`Bienvenue ${newMember} !`);
+      }
+    };
+  }
+}

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4CAF50">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="favicon.png">
+  <title>Paramètres</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="constants.js"></script>
+  <script src="app.js"></script>
+</head>
+<body>
+  <h1>⚙️ Paramètres</h1>
+
+  <div class="formulaire visible" style="max-width: 500px;">
+    <h2>👤 Membre actuel</h2>
+    <p>Identifiez-vous pour tracer vos actions dans le jardin :</p>
+    <div id="memberDisplay" style="font-size: 1.2rem; margin: 1rem 0; padding: 1rem; background: #e8f5e9; border-radius: 8px; text-align: center; cursor: pointer;">
+      Chargement...
+    </div>
+    <button onclick="changeMember()" class="submit">Changer de membre</button>
+
+    <hr style="margin: 2rem 0; border: none; border-top: 1px solid #ccc;">
+
+    <h2>💾 Sauvegarde des données</h2>
+    <p>Exportez vos données pour les sauvegarder ou les transférer :</p>
+    <button onclick="downloadDataAsJSON()" class="submit" style="width: 100%;">
+      📥 Exporter toutes les données (JSON)
+    </button>
+
+    <p style="margin-top: 2rem;">Importez des données depuis un fichier de sauvegarde :</p>
+    <input type="file" id="importFile" accept=".json" style="display: none;">
+    <button onclick="document.getElementById('importFile').click()" class="submit" style="width: 100%;">
+      📤 Importer des données
+    </button>
+
+    <hr style="margin: 2rem 0; border: none; border-top: 1px solid #ccc;">
+
+    <h2>📊 Statistiques</h2>
+    <div id="stats" style="background: #f5f5f5; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+      Chargement...
+    </div>
+
+    <hr style="margin: 2rem 0; border: none; border-top: 1px solid #ccc;">
+
+    <button onclick="window.location.href='index.html'" style="width: 100%; margin-top: 2rem;">
+      🏠 Retour au jardin
+    </button>
+  </div>
+
+  <script>
+    window.onload = function() {
+      // Afficher le membre actuel
+      updateMemberDisplay();
+
+      // Afficher les statistiques
+      updateStats();
+
+      // Gérer l'import de fichier
+      document.getElementById('importFile').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          importDataFromJSON(file);
+        }
+      });
+    };
+
+    function updateMemberDisplay() {
+      const member = getCurrentMember();
+      const display = document.getElementById('memberDisplay');
+      if (member) {
+        display.innerHTML = `👤 <strong>${member}</strong>`;
+      } else {
+        display.innerHTML = '❌ Aucun membre identifié';
+      }
+    }
+
+    function changeMember() {
+      const newMember = promptForMember();
+      if (newMember) {
+        updateMemberDisplay();
+        showSuccessMessage(`Membre changé: ${newMember}`);
+      }
+    }
+
+    function updateStats() {
+      const plantations = getFromStorage(STORAGE_KEYS.PLANTATIONS, []);
+      const stocks = getFromStorage(STORAGE_KEYS.STOCKS, []);
+      const outils = getFromStorage(STORAGE_KEYS.OUTILS, []);
+      const preleves = getFromStorage(STORAGE_KEYS.PRELEVES, []);
+
+      const statsDiv = document.getElementById('stats');
+      statsDiv.innerHTML = `
+        <p><strong>🌱 Plantations :</strong> ${plantations.length}</p>
+        <p><strong>📦 Stocks de plants :</strong> ${stocks.length}</p>
+        <p><strong>🧰 Outils :</strong> ${outils.length}</p>
+        <p><strong>🧺 Prélèvements :</strong> ${preleves.length}</p>
+        <p style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;">
+          <strong>Total d'enregistrements :</strong> ${plantations.length + stocks.length + outils.length + preleves.length}
+        </p>
+      `;
+    }
+  </script>
+</body>
+</html>
